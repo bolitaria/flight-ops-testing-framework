@@ -5,8 +5,13 @@ services:
     build: ./src/flight_service
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/flights
     networks:
       - flight_ops_net
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/flights"]
@@ -45,6 +50,27 @@ services:
       timeout: 5s
       retries: 3
 
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flights
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - flight_ops_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   flight_ops_net:
     driver: bridge
+
+volumes:
+  pgdata:
