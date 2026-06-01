@@ -27,7 +27,7 @@ services:
       - "5673:5672"
       - "15673:15672"
     volumes:
-      - /home/boli/rabbitmq-data:/var/lib/rabbitmq   # <-- ruta nativa de WSL
+      - /home/boli/rabbitmq-data:/var/lib/rabbitmq
     networks:
       - flight_ops_net
     healthcheck:
@@ -89,9 +89,36 @@ services:
       timeout: 5s
       retries: 3
 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    networks:
+      - flight_ops_net
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana_provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana_provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - flight_ops_net
+
 networks:
   flight_ops_net:
     driver: bridge
 
 volumes:
   pgdata:
+  prometheus_data:
+  grafana_data:

@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'flight_service'
+    static_configs:
+      - targets: ['flight_service:8000']
+  - job_name: 'booking_service'
+    static_configs:
+      - targets: ['booking_service:8001']
+  - job_name: 'notification_service'
+    static_configs:
+      - targets: ['notification_service:8002']

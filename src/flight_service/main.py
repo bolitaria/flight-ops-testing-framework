@@ -1,3 +1,7 @@
+"""
+Flight Service – Core API for flight management.
+Uses PostgreSQL via SQLAlchemy. Exposes Prometheus metrics.
+"""
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
@@ -6,6 +10,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 import models
 from database import engine, SessionLocal
+from prometheus_fastapi_instrumentator import Instrumentator
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -13,6 +18,7 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="Flight Service", version="1.0.0", lifespan=lifespan)
+Instrumentator().instrument(app).expose(app)
 
 class FlightCreate(BaseModel):
     origin: str

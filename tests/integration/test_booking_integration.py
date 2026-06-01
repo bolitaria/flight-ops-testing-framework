@@ -14,8 +14,14 @@ async def test_create_booking_calls_flight_service(flight_client, booking_client
     assert response.status_code == 201
     assert response.json()["status"] == "confirmed"
 
-    # Wait for async notification (polling with timeout)
-    await asyncio.sleep(2)  # give RabbitMQ time to deliver
-    response = await notification_client.get("/notifications")
-    notifications = response.json()
-    assert any("Test User" in n["recipient"] for n in notifications)
+    # Wait for async notification with polling
+    timeout = 15
+    start = asyncio.get_event_loop().time()
+    while True:
+        response = await notification_client.get("/notifications")
+        notifications = response.json()
+        if any("Test User" in n["recipient"] for n in notifications):
+            break
+        if asyncio.get_event_loop().time() - start > timeout:
+            pytest.fail("Notification not received within timeout")
+        await asyncio.sleep(1)

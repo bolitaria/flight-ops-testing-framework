@@ -1,0 +1,45 @@
+{
+  "dashboard": {
+    "title": "Flight Operations Overview",
+    "uid": "flight-ops-overview",
+    "panels": [
+      {
+        "title": "Reservas por minuto",
+        "type": "timeseries",
+        "targets": [
+          {
+            "datasource": { "type": "prometheus", "uid": "Prometheus" },
+            "expr": "rate(http_requests_total{job=\"booking_service\", handler=\"/bookings\", method=\"POST\"}[1m])"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+      },
+      {
+        "title": "Tasa de éxito de reservas",
+        "type": "stat",
+        "targets": [
+          {
+            "datasource": { "type": "prometheus", "uid": "Prometheus" },
+            "expr": "(sum(rate(http_requests_total{job=\"booking_service\", handler=\"/bookings\", method=\"POST\", status=\"201\"}[5m])) / sum(rate(http_requests_total{job=\"booking_service\", handler=\"/bookings\", method=\"POST\"}[5m]))) * 100"
+          }
+        ],
+        "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 95 } ] } } },
+        "gridPos": { "h": 8, "w": 6, "x": 12, "y": 0 }
+      },
+      {
+        "title": "Notificaciones por minuto",
+        "type": "timeseries",
+        "targets": [
+          {
+            "datasource": { "type": "prometheus", "uid": "Prometheus" },
+            "expr": "rate(http_requests_total{job=\"notification_service\", handler=\"/notify\", method=\"POST\"}[1m])"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 }
+      }
+    ],
+    "schemaVersion": 38,
+    "time": { "from": "now-1h", "to": "now" }
+  },
+  "overwrite": true
+}

@@ -9,8 +9,10 @@ import httpx
 import pika
 import json
 import uvicorn
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="Booking Service", version="1.0.0")
+Instrumentator().instrument(app).expose(app)
 
 FLIGHT_SERVICE_URL = "http://flight_service:8000"
 RABBITMQ_URL = "amqp://guest:guest@rabbitmq:5672/%2F"
@@ -31,7 +33,7 @@ def publish_event(booking: Booking):
         exchange='',
         routing_key='booking_events',
         body=json.dumps(booking.model_dump()),
-        properties=pika.BasicProperties(delivery_mode=2)  # persistent
+        properties=pika.BasicProperties(delivery_mode=2)
     )
     connection.close()
 
