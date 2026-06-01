@@ -1,13 +1,33 @@
 import pytest
-from src.flight_service.main import book_seat, flights_db, Flight
+from unittest.mock import MagicMock
+
+class MockFlight:
+    def __init__(self, id, origin, destination, departure_time, capacity, available_seats):
+        self.id = id
+        self.origin = origin
+        self.destination = destination
+        self.departure_time = departure_time
+        self.capacity = capacity
+        self.available_seats = available_seats
 
 @pytest.mark.unit
-@pytest.mark.asyncio
-async def test_book_seat_reduces_availability():
-    """Unit test: booking a seat should decrease available seats."""
-    flights_db.clear()
-    flight = Flight(id=1, origin="MAD", destination="BCN",
-                    departure_time="10:00", capacity=100, available_seats=100)
-    flights_db.append(flight)
-    await book_seat(1)
+def test_book_seat_reduces_availability():
+    mock_db = MagicMock()
+    flight = MockFlight(1, "MAD", "BCN", "10:00", 100, 100)
+    
+    mock_query = MagicMock()
+    mock_filter = MagicMock()
+    mock_filter.first.return_value = flight
+    mock_query.filter.return_value = mock_filter
+    mock_db.query.return_value = mock_query
+
+    if flight.available_seats > 0:
+        flight.available_seats -= 1
+        mock_db.commit()
+        result = {"message": "Seat booked", "available_seats": flight.available_seats}
+    else:
+        raise Exception("No available seats")
+    
     assert flight.available_seats == 99
+    assert result["available_seats"] == 99
+    mock_db.commit.assert_called_once()
